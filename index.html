@@ -91,12 +91,86 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1.5rem;
       margin-bottom: 2rem;
     }
 
-    .card {
+    @media (max-width: 640px) {
+      body {
+        padding: 1rem;
+      }
+
+      header {
+        margin-bottom: 1.25rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      .control-panel {
+        padding: 1rem;
+        gap: 0.8rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .control-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .control-group input[type="range"] {
+        flex: 1;
+        max-width: 160px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .badge {
+        align-self: flex-start;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 0.65rem;
+      }
+
+      h1 {
+        font-size: 1.2rem;
+      }
+
+      p.subtitle {
+        font-size: 0.85rem;
+      }
+
+      .btn {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.85rem;
+        word-break: break-word;
+      }
+
+      .console-card {
+        padding: 0.85rem;
+      }
+
+    }
+  .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 12px;
@@ -467,13 +541,25 @@ startxref
 
     const DUMMY_PDF_URL = 'https://lorempdf.com/1000/1000/10';
 
-    // Helper to simulate backend delay
-    function waitDelay(delayMs) {
-      return new Promise((resolve) => setTimeout(resolve, delayMs));
+    // Simulated Long Network API Fetch (Returns a Blob object URL)
+    async function fakeFetchPdf(delayMs) {
+      log(`[API] Fetching binary PDF payload over network (${delaySeconds}s delay)...`, 'info');
+      await waitDelay(delayMs);
+      try {
+        const response = await fetch(DUMMY_PDF_URL, { mode: 'cors' });
+        if (response.ok) {
+          const blob = await response.blob();
+          log(`[API] Received PDF binary stream (${blob.size} bytes).`, 'success');
+          return blob;
+        }
+      } catch (err) {
+        log(`[API] Fetch notice: ${err.message}. Using fallback client PDF Blob...`, 'warn');
+      }
+      return createDummyPdfBlob();
     }
 
     // ==========================================
-    // TEST OPTION A: Pre-open window, then redirect to DUMMY_PDF_URL
+    // TEST OPTION A: Pre-open tab, then set location.href = blobUrl
     // ==========================================
     async function testOptionA() {
       log(`[Option A] Click event registered. Immediately opening window.open('about:blank')...`, 'info');
@@ -482,7 +568,7 @@ startxref
       const targetWindow = window.open('about:blank', '_blank');
 
       if (!targetWindow) {
-        log(`[Option A] ❌ window.open() was BLOCKED immediately by the browser popup blocker!`, 'error');
+        log(`[Option A] ❌ window.open() was BLOCKED immediately by browser popup blocker!`, 'error');
         alert('Popup blocked immediately!');
         return;
       }
@@ -513,19 +599,20 @@ startxref
           `;
         }
       } catch (e) {
-        log(`[Option A] Warning writing to initial window: ${e.message}`, 'warn');
+        log(`[Option A] Warning writing initial loader: ${e.message}`, 'warn');
       }
 
-      log(`[Option A] Tab opened. Waiting ${delaySeconds}s delay before redirecting to ${DUMMY_PDF_URL}...`, 'info');
-
       try {
-        await waitDelay(delaySeconds * 1000);
-        log(`[Option A] Delay elapsed. Setting targetWindow.location.href = '${DUMMY_PDF_URL}'...`, 'info');
+        // Step 2: Perform network API fetch to get binary PDF Blob
+        const pdfBlob = await fakeFetchPdf(delaySeconds * 1000);
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        log(`[Option A] PDF Blob created: ${blobUrl.substring(0, 30)}...`, 'info');
+        log(`[Option A] Attempting setting targetWindow.location.href = blobUrl...`, 'warn');
 
-        // Step 2: Set location to dummy PDF URL after long async delay
-        targetWindow.location.href = DUMMY_PDF_URL;
+        // Step 3: Attempt setting location to blob URL after long async delay
+        targetWindow.location.href = blobUrl;
 
-        log(`[Option A] ✅ location.href updated to dummy PDF URL. (Note: Safari may block cross-context redirect after async delay)`, 'success');
+        log(`[Option A] location.href updated. (Note: Safari & Mobile Safari block or fail cross-context blob URL redirects after async delay)`, 'warn');
       } catch (err) {
         log(`[Option A] ❌ Error during navigation: ${err.message}`, 'error');
         if (targetWindow) targetWindow.close();
@@ -533,7 +620,7 @@ startxref
     }
 
     // ==========================================
-    // TEST OPTION B: Pre-open window + Loader + iframe PDF viewer
+    // TEST OPTION B: Pre-open tab + iframe embedding blobUrl
     // ==========================================
     async function testOptionB() {
       log(`[Option B] Click event registered. Opening window.open('about:blank')...`, 'info');
@@ -574,14 +661,16 @@ startxref
         log(`[Option B] Warning writing initial loader: ${e.message}`, 'warn');
       }
 
-      log(`[Option B] Waiting ${delaySeconds}s before embedding PDF iframe...`, 'info');
-
       try {
-        await waitDelay(delaySeconds * 1000);
-        log(`[Option B] Embedding <iframe> for ${DUMMY_PDF_URL} in tab...`, 'info');
+        // Step 2: Perform network API fetch to get binary PDF Blob
+        const pdfBlob = await fakeFetchPdf(delaySeconds * 1000);
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        log(`[Option B] PDF Blob created: ${blobUrl.substring(0, 30)}...`, 'info');
+        log(`[Option B] Embedding <iframe src="${blobUrl.substring(0, 30)}..."> inside tab DOM...`, 'info');
 
+        // Step 3: Inject iframe rendering the Blob URL inside the pre-opened tab
         targetWindow.document.body.style.cssText = 'margin:0; padding:0; overflow:hidden; background:#1e293b;';
-        targetWindow.document.body.innerHTML = `<iframe src="${DUMMY_PDF_URL}" style="width:100vw; height:100vh; border:none;"></iframe>`;
+        targetWindow.document.body.innerHTML = `<iframe src="${blobUrl}" style="width:100vw; height:100vh; border:none;"></iframe>`;
 
         log(`[Option B] ✅ Embedded iframe created inside pre-opened tab. PDF renders directly in tab viewer!`, 'success');
       } catch (err) {
