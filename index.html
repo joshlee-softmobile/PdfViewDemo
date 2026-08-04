@@ -326,13 +326,15 @@
 
   <header>
     <h1>PDF Download & Popup Behavior Tester</h1>
-    <p class="subtitle">Simulate modern browser security policies (Chrome, Safari, iOS Safari, Android) for PDF generation.</p>
+    <p class="subtitle">Simulate modern browser security policies (Chrome, Safari, iOS Safari, Android) for PDF
+      generation.</p>
   </header>
 
   <div class="control-panel">
     <div class="control-group">
       <label for="delayRange">Simulated API Delay:</label>
-      <input type="range" id="delayRange" min="1" max="10" value="5" oninput="updateDelayLabel(this.value)" onchange="updateDelayLabel(this.value)">
+      <input type="range" id="delayRange" min="1" max="30" value="10" oninput="updateDelayLabel(this.value)"
+        onchange="updateDelayLabel(this.value)">
       <span class="delay-val" id="delayLabel">5 sec</span>
     </div>
     <div style="font-size: 0.85rem; color: var(--text-muted);">
@@ -348,10 +350,12 @@
         <span class="badge badge-a">window.open + Blob</span>
       </div>
       <div class="card-body">
-        Opens <code>about:blank</code> synchronously on click, fetches binary PDF Blob over network after delay, then sets <code>targetWindow.location.href = blobUrl</code>.
+        Opens <code>about:blank</code> synchronously on click, fetches binary PDF Blob over network after delay, then
+        sets <code>targetWindow.location.href = blobUrl</code>.
         <ul>
           <li><strong>Intent:</strong> Fetch PDF bytes via POST and view in new tab.</li>
-          <li><strong>Risk:</strong> Safari & Mobile Safari block/fail cross-context <code>blob:</code> location redirects after async delay.</li>
+          <li><strong>Risk:</strong> Safari & Mobile Safari block/fail cross-context <code>blob:</code> location
+            redirects after async delay.</li>
         </ul>
       </div>
       <button class="btn" onclick="testOptionA()">Test Option A (Pre-Open Tab)</button>
@@ -364,7 +368,8 @@
         <span class="badge badge-b">target="_blank"</span>
       </div>
       <div class="card-body">
-        Native HTML <code>&lt;a href="PDF_URL" target="_blank"&gt;</code> link pointing directly to server endpoint streaming PDF inline.
+        Native HTML <code>&lt;a href="PDF_URL" target="_blank"&gt;</code> link pointing directly to server endpoint
+        streaming PDF inline.
         <ul>
           <li><strong>Intent:</strong> Instant tab open with native browser PDF viewer.</li>
           <li><strong>Best UX:</strong> 🟢 0% popup blocker risk across all platforms (iOS, Android, Desktop).</li>
@@ -382,15 +387,16 @@
         onclick="clearConsole()">Clear Logs</button>
     </div>
     <div class="console-log" id="consoleLog">
-      <div class="log-entry"><span class="log-time">[System]</span><span class="log-info">Ready for testing. Select an option above.</span></div>
+      <div class="log-entry"><span class="log-time">[System]</span><span class="log-info">Ready for testing. Select an
+          option above.</span></div>
     </div>
   </div>
 
   <script>
-    let delaySeconds = 5;
+    let delaySeconds = 10;
 
     function updateDelayLabel(val) {
-      delaySeconds = parseInt(val, 10);
+      delaySeconds = parseInt(val, 30);
       const label = document.getElementById('delayLabel');
       if (label) {
         label.innerText = val + ' sec';
@@ -480,82 +486,52 @@ startxref
     // TEST OPTION A: Pre-open tab + Delayed Blob Redirect
     // ==========================================
     async function testOptionA() {
-      log(`[Option A] Click event registered. Opening window.open('about:blank')...`, 'info');
+      log(`[Option A] Click event registered. Constructing responsive loader Data URL...`, 'info');
 
-      const targetWindow = window.open('about:blank', '_blank');
+      const loaderHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Preparing Boarding Pass...</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #0f172a; color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      display: flex; justify-content: center; align-items: center;
+      padding: 20px; text-align: center;
+    }
+    .loader-card { width: 100%; max-width: 320px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 56px; height: 56px;
+      border: 5px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6;
+      border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;
+    }
+    h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 10px; color: #f8fafc; }
+    p { color: #94a3b8; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="loader-card">
+    <div class="spinner"></div>
+    <h2>Preparing Boarding Pass PDF...</h2>
+    <p>Fetching data & generating PDF (${delaySeconds}s)...</p>
+  </div>
+</body>
+</html>`;
+
+      const loaderDataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(loaderHtml);
+      const targetWindow = window.open(loaderDataUrl, '_blank');
 
       if (!targetWindow) {
         log(`[Option A] ❌ window.open() was BLOCKED immediately by browser popup blocker!`, 'error');
         alert('Popup blocked immediately!');
         return;
-      }
-
-      try {
-        if (targetWindow.document) {
-          targetWindow.document.open();
-          targetWindow.document.write(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Preparing Boarding Pass...</title>
-              <style>
-                * { box-sizing: border-box; margin: 0; padding: 0; }
-                html, body {
-                  width: 100%;
-                  height: 100%;
-                  background: #0f172a;
-                  color: #f8fafc;
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                }
-                body {
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  padding: 16px;
-                }
-                .loader-card {
-                  text-align: center;
-                  width: 100%;
-                  max-width: 340px;
-                }
-                @keyframes spin { to { transform: rotate(360deg); } }
-                .spinner {
-                  display: inline-block;
-                  width: 52px;
-                  height: 52px;
-                  border: 5px solid rgba(59, 130, 246, 0.2);
-                  border-top-color: #3b82f6;
-                  border-radius: 50%;
-                  animation: spin 1s linear infinite;
-                  margin-bottom: 20px;
-                }
-                h2 {
-                  font-size: 1.3rem;
-                  font-weight: 600;
-                  margin-bottom: 8px;
-                  color: #f8fafc;
-                }
-                p {
-                  color: #94a3b8;
-                  font-size: 0.95rem;
-                }
-              </style>
-            </head>
-            <body>
-              <div class="loader-card">
-                <div class="spinner"></div>
-                <h2>Preparing Boarding Pass PDF...</h2>
-                <p>Fetching data & generating PDF (${delaySeconds}s)...</p>
-              </div>
-            </body>
-            </html>
-          `);
-          targetWindow.document.close();
-        }
-      } catch (e) {
-        log(`[Option A] Warning writing initial loader: ${e.message}`, 'warn');
       }
 
       try {
