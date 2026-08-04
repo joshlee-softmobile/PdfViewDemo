@@ -541,6 +541,11 @@ startxref
 
     const DUMMY_PDF_URL = 'https://lorempdf.com/1000/1000/10';
 
+    // Helper to simulate backend delay
+    function waitDelay(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
     // Simulated Long Network API Fetch (Returns a Blob object URL)
     async function fakeFetchPdf(delayMs) {
       log(`[API] Fetching binary PDF payload over network (${delaySeconds}s delay)...`, 'info');
