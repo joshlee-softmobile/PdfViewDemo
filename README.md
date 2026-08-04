@@ -1,6 +1,6 @@
 # Browser PDF Popup & Window Behavior Guide
 
-This guide documents browser security policies (Chrome, Safari, iOS Safari, Edge, Firefox) regarding long-running asynchronous PDF generation and tab opening triggered by user click events.
+This guide documents browser security policies (Chrome, Safari, iOS Safari, Android Chrome, Edge, Firefox) regarding long-running asynchronous PDF generation and tab opening triggered by user click events.
 
 ---
 
@@ -15,23 +15,24 @@ Modern browsers enforce strict **User Activation / Transient User Gesture** poli
 
 ---
 
-## 2. Summary of Options & Solutions
+## 2. Production Solutions & Comparison
 
-| Option | Approach | Popup Blocker Risk | Inline PDF Viewer? | Recommended Scenario |
-| :--- | :--- | :---: | :---: | :--- |
-| **Option A** | Pre-open `about:blank` + `location.href` redirect | ⚠️ High (Safari) | Yes | Desktop Chrome only |
-| **Option B** | Pre-open `about:blank` + Loader Spinner + `<iframe>` Viewer | 🟢 Low | Yes | **POST APIs / Payload-based PDF requests** |
-| **Option C** | Native `<a href="URL" target="_blank">` link | 🟢 0% Risk | Yes | **Gold Standard (Direct GET URLs)** |
+To support on-the-fly PDF generation across all browsers (including iOS Safari & Android Chrome), use the **GET Ticket Endpoint Pattern** (`/api/BoardingPass/PDFStream?ticket=GUID`).
+
+| Option | Approach | Ticket Generation | Popup Blocker Risk | Compatibility | Recommended Scenario |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **Option A** | Pre-open `about:blank` + Fast Ticket POST + GET Redirect | On Demand (when clicked) | 🟢 Low | 🟢 100% (iOS, Android, Desktop) | **Dynamic PDF generation on button click** |
+| **Option B** | Native `<a href="/PDFStream?ticket=GUID" target="_blank">` link | Pre-attached on page load | 🟢 0% Risk | 🟢 100% (iOS, Android, Desktop) | **Gold Standard (Zero Frontend JS)** |
 
 ---
 
 ## 3. Implementation Details
 
-### Option B (Pre-open tab + Animated Loader + `<iframe>` Viewer)
-Best pattern when PDF generation requires a POST request with payload:
+### Option A (Pre-Open Tab + Dynamic Ticket Fetch)
+Best pattern when tickets should only be created when a passenger clicks "View PDF":
 
 ```javascript
-onViewPdfClick: async function() {
+onViewPdfClick: async function(customerPayload) {
   // 1. Synchronously open blank window inside click handler
   const pdfWindow = window.open('about:blank', '_blank');
   if (!pdfWindow) return alert('Popup blocked!');
@@ -45,25 +46,24 @@ onViewPdfClick: async function() {
     </div>
   `;
 
-  // 3. Perform long backend API call
-  const pdfUrl = await fetchBoardingPassPdfApi();
+  // 3. Fetch ticket GUID from backend (fast ~20ms POST call)
+  const res = await api.post('/api/BoardingPass/PDFTicket', customerPayload);
 
-  // 4. Inject full-page iframe to render PDF inline
-  pdfWindow.document.body.style.cssText = 'margin:0;padding:0;overflow:hidden;';
-  pdfWindow.document.body.innerHTML = `<iframe src="${pdfUrl}" style="width:100vw;height:100vh;border:none;"></iframe>`;
+  // 4. Navigate window to real server GET URL
+  pdfWindow.location.href = `/api/BoardingPass/PDFStream?ticket=${res.ticket}`;
 }
 ```
 
-### Option C (Native GET Link — Gold Standard)
-If your API allows fetching via tokenized URL parameters:
+### Option B (Native Link — Gold Standard)
+If ticket GUIDs are pre-attached during passenger list load:
 
 ```html
-<a href="/api/BoardingPass/PDFFile?token=XYZ" target="_blank" class="btn">
+<a href="/api/BoardingPass/PDFStream?ticket=550e8400-e29b-41d4-a716-446655440000" target="_blank" class="btn">
   View Boarding Pass PDF
 </a>
 ```
 * Backend HTTP Header: `Content-Disposition: inline; filename="BoardingPass.pdf"`.
-* Native browser PDF viewer opens seamlessly in a new tab with 0% popup blocker risk.
+* Native browser PDF viewer opens seamlessly in a new tab with 0% popup blocker risk across all mobile & desktop platforms.
 
 ---
 

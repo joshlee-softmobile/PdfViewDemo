@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Download & Window Popup Test Harness</title>
+  <title>PDF Download & Popup Behavior Tester</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -96,6 +96,151 @@
       margin-bottom: 2rem;
     }
 
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-a {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .badge-b {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .card-body {
+      flex: 1;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .card-body ul {
+      padding-left: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .card-body li {
+      margin-bottom: 0.4rem;
+    }
+
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-green {
+      background-color: #059669;
+    }
+
+    .btn-green:hover {
+      background-color: #047857;
+    }
+
+    .console-card {
+      background: #020617;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 0.5rem;
+    }
+
+    .console-title {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .console-log {
+      height: 220px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .log-time {
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .log-info {
+      color: #38bdf8;
+    }
+
+    .log-success {
+      color: #4ade80;
+    }
+
+    .log-warn {
+      color: #fbbf24;
+    }
+
+    .log-error {
+      color: #f87171;
+    }
+
     @media (max-width: 640px) {
       body {
         padding: 1rem;
@@ -169,221 +314,10 @@
         padding: 0.85rem;
       }
 
-    }
-  .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-    }
-
-    .card-title {
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: #f1f5f9;
-    }
-
-    .badge {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 9999px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .badge-a {
-      background: rgba(59, 130, 246, 0.2);
-      color: #93c5fd;
-      border: 1px solid rgba(59, 130, 246, 0.4);
-    }
-
-    .badge-b {
-      background: rgba(16, 185, 129, 0.2);
-      color: #6ee7b7;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-    }
-
-    .badge-c {
-      background: rgba(245, 158, 11, 0.2);
-      color: #fde047;
-      border: 1px solid rgba(245, 158, 11, 0.4);
-    }
-
-    .card-body {
-      flex: 1;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-bottom: 1.25rem;
-    }
-
-    .card-body ul {
-      padding-left: 1.2rem;
-      margin-top: 0.5rem;
-    }
-
-    .card-body li {
-      margin-bottom: 0.4rem;
-    }
-
-    .btn {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0.75rem 1.25rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .btn:hover {
-      background-color: var(--primary-hover);
-      transform: translateY(-1px);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn-green {
-      background-color: var(--success);
-    }
-
-    .btn-green:hover {
-      background-color: #059669;
-    }
-
-    .btn-amber {
-      background-color: var(--warning);
-      color: #0f172a;
-    }
-
-    .btn-amber:hover {
-      background-color: #d97706;
-    }
-
-    .console-card {
-      background: #090d16;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
-    }
-
-    .console-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #1e293b;
-    }
-
-    .console-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #a7f3d0;
-      font-family: monospace;
-    }
-
-    .console-log {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.85rem;
-      height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .log-entry {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    .log-time {
-      color: #64748b;
-    }
-
-    .log-info {
-      color: #38bdf8;
-    }
-
-    .log-success {
-      color: #4ade80;
-    }
-
-    .log-warn {
-      color: #fbbf24;
-    }
-
-    .log-error {
-      color: #f87171;
-    }
-
-    .explanation-section {
-      margin-top: 2rem;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-
-    .explanation-section h2 {
-      font-size: 1.2rem;
-      color: #93c5fd;
-      margin-bottom: 1rem;
-    }
-
-    .explanation-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .explanation-grid {
-        grid-template-columns: 1fr;
+      .console-log {
+        font-size: 0.78rem;
+        height: 180px;
       }
-    }
-
-    .exp-box {
-      background: #0f172a;
-      padding: 1rem 1.25rem;
-      border-radius: 8px;
-      border-left: 4px solid var(--primary);
-    }
-
-    .exp-box.amber {
-      border-left-color: var(--warning);
-    }
-
-    .exp-box.green {
-      border-left-color: var(--success);
-    }
-
-    .exp-box h3 {
-      font-size: 1rem;
-      color: #f1f5f9;
-      margin-bottom: 0.5rem;
-    }
-
-    .exp-box p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
     }
   </style>
 </head>
@@ -392,8 +326,7 @@
 
   <header>
     <h1>PDF Download & Popup Behavior Tester</h1>
-    <p class="subtitle">Simulate modern browser security policies (Chrome, Safari, iOS Safari) during long-running
-      backend PDF generation.</p>
+    <p class="subtitle">Simulate modern browser security policies (Chrome, Safari, iOS Safari, Android) for PDF generation.</p>
   </header>
 
   <div class="control-panel">
@@ -403,57 +336,41 @@
       <span class="delay-val" id="delayLabel">5 sec</span>
     </div>
     <div style="font-size: 0.85rem; color: var(--text-muted);">
-      💡 Tip: Set delay &gt; 3s to test browser popup blocker strictness after long asynchronous requests.
+      💡 Note: Testing 2 Production-Grade Patterns for On-The-Fly PDF Generation.
     </div>
   </div>
 
   <div class="grid">
-    <!-- Option A -->
+    <!-- Option A: Dynamic Ticket on Click -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Option A: Pre-Open Tab</div>
-        <span class="badge badge-a">window.open</span>
+        <div class="card-title">Option A: Pre-Open Tab + Ticket Redirect</div>
+        <span class="badge badge-a">window.open + Ticket</span>
       </div>
       <div class="card-body">
-        Opens <code>about:blank</code> synchronously on click, then redirects <code>location.href</code> after delay.
+        Pre-opens <code>about:blank</code> on click, fetches single-use ticket GUID via fast POST API (~20ms), and navigates tab to server <code>GET /PDFStream?ticket=GUID</code>.
         <ul>
-          <li><strong>Intent:</strong> View PDF in new tab.</li>
-          <li><strong>Risk:</strong> Safari often blocks cross-context location redirects after async delay.</li>
+          <li><strong>Ticket Creation:</strong> On demand (when clicked).</li>
+          <li><strong>Compatibility:</strong> 🟢 100% (iOS, Android Chrome, Desktop).</li>
         </ul>
       </div>
-      <button class="btn" onclick="testOptionA()">Test Option A (Pre-Open Tab)</button>
+      <button class="btn" onclick="testOptionA()">Test Option A (Ticket on Click)</button>
     </div>
 
-    <!-- Option B: Pre-Open Tab + Loader + iframe viewer -->
+    <!-- Option B: Native <a target="_blank"> Link -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Option B: Tab + Loader + Embedded Viewer</div>
-        <span class="badge badge-b">iframe viewer</span>
-      </div>
-      <div class="card-body">
-        Opens <code>about:blank</code> on click, displays animated loader spinner, then embeds PDF <code>&lt;iframe&gt;</code> inside tab once ready.
-        <ul>
-          <li><strong>Intent:</strong> Inline PDF viewing in new tab.</li>
-          <li><strong>Advantage:</strong> Best pattern for POST APIs requiring token/payload fetch.</li>
-        </ul>
-      </div>
-      <button class="btn btn-green" onclick="testOptionB()">Test Option B (iframe Viewer)</button>
-    </div>
-
-    <!-- Option C: Native <a target="_blank"> link -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Option C: Native Link (Gold Standard)</div>
+        <div class="card-title">Option B: Native Link (Gold Standard)</div>
         <span class="badge badge-b">target="_blank"</span>
       </div>
       <div class="card-body">
-        Native HTML <code>&lt;a href="PDF_URL" target="_blank"&gt;</code> link pointing directly to endpoint streaming PDF inline.
+        Native HTML <code>&lt;a href="/api/BoardingPass/PDFStream?ticket=GUID" target="_blank"&gt;</code> link pointing directly to server endpoint.
         <ul>
-          <li><strong>Intent:</strong> Instant tab open with native browser PDF viewer.</li>
-          <li><strong>Best UX:</strong> 0% popup blocker risk for direct GET URLs.</li>
+          <li><strong>Ticket Creation:</strong> Pre-attached on page load.</li>
+          <li><strong>Best UX:</strong> 🟢 0% popup blocker risk, 0 lines of JS required.</li>
         </ul>
       </div>
-      <a class="btn btn-amber" style="text-decoration:none;" href="https://lorempdf.com/1000/1000/10" target="_blank">Test Option C (Native Link)</a>
+      <a class="btn btn-green" href="https://lorempdf.com/1000/1000/10" target="_blank">Test Option B (Native Link)</a>
     </div>
   </div>
 
@@ -465,12 +382,9 @@
         onclick="clearConsole()">Clear Logs</button>
     </div>
     <div class="console-log" id="consoleLog">
-      <div class="log-entry"><span class="log-time">[System]</span><span class="log-info">Ready for testing. Select an
-          option above.</span></div>
+      <div class="log-entry"><span class="log-time">[System]</span><span class="log-info">Ready for testing. Select an option above.</span></div>
     </div>
   </div>
-
-
 
   <script>
     let delaySeconds = 5;
@@ -506,70 +420,18 @@
       log('Console cleared.', 'info');
     }
 
-    // Helper: Generate a real client-side PDF Blob
-    function createDummyPdfBlob() {
-      const pdfRaw = `%PDF-1.4
-1 0 obj <</Type /Catalog /Pages 2 0 R>> endobj
-2 0 obj <</Type /Pages /Kids [3 0 R] /Count 1>> endobj
-3 0 obj <</Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R>> endobj
-4 0 obj <</Type /Font /Subtype /Type1 /BaseFont /Helvetica>> endobj
-5 0 obj <</Length 95>> stream
-BT
-/F1 24 Tf
-100 700 Td
-(Boarding Pass - Test PDF File) Tj
-/F1 14 Tf
-0 -40 Td
-(Generated successfully at ${new Date().toLocaleTimeString()}) Tj
-ET
-endstream
-endobj
-xref
-0 6
-0000000000 65535 f 
-0000000010 00000 n 
-0000000060 00000 n 
-0000000117 00000 n 
-0000000256 00000 n 
-0000000325 00000 n 
-trailer <</Size 6 /Root 1 0 R>>
-startxref
-470
-%%EOF`;
-      return new Blob([pdfRaw], { type: 'application/pdf' });
-    }
-
     const DUMMY_PDF_URL = 'https://lorempdf.com/1000/1000/10';
 
-    // Helper to simulate backend delay
     function waitDelay(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    // Simulated Long Network API Fetch (Returns a Blob object URL)
-    async function fakeFetchPdf(delayMs) {
-      log(`[API] Fetching binary PDF payload over network (${delaySeconds}s delay)...`, 'info');
-      await waitDelay(delayMs);
-      try {
-        const response = await fetch(DUMMY_PDF_URL, { mode: 'cors' });
-        if (response.ok) {
-          const blob = await response.blob();
-          log(`[API] Received PDF binary stream (${blob.size} bytes).`, 'success');
-          return blob;
-        }
-      } catch (err) {
-        log(`[API] Fetch notice: ${err.message}. Using fallback client PDF Blob...`, 'warn');
-      }
-      return createDummyPdfBlob();
-    }
-
     // ==========================================
-    // TEST OPTION A: Pre-open tab, then set location.href = blobUrl
+    // TEST OPTION A: Pre-open tab + Ticket Redirect
     // ==========================================
     async function testOptionA() {
-      log(`[Option A] Click event registered. Immediately opening window.open('about:blank')...`, 'info');
+      log(`[Option A] Click event registered. Opening window.open('about:blank')...`, 'info');
 
-      // Step 1: Open tab synchronously in user gesture handler
       const targetWindow = window.open('about:blank', '_blank');
 
       if (!targetWindow) {
@@ -584,22 +446,10 @@ startxref
           targetWindow.document.body.style.cssText = 'font-family:-apple-system,BlinkMacSystemFont,sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; background:#0f172a; color:#f8fafc;';
           targetWindow.document.body.innerHTML = `
             <div style="text-align:center; padding: 24px;">
-              <style>
-                @keyframes spin { to { transform: rotate(360deg); } }
-                .spinner {
-                  display: inline-block;
-                  width: 52px;
-                  height: 52px;
-                  border: 5px solid rgba(59, 130, 246, 0.2);
-                  border-top-color: #3b82f6;
-                  border-radius: 50%;
-                  animation: spin 1s linear infinite;
-                  margin-bottom: 20px;
-                }
-              </style>
-              <div class="spinner"></div>
+              <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+              <div style="display:inline-block; width:52px; height:52px; border:5px solid rgba(59,130,246,0.2); border-top-color:#3b82f6; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:20px;"></div>
               <h2 style="font-size:1.4rem; font-weight:600; margin-bottom:8px; color:#f8fafc;">Preparing Boarding Pass PDF...</h2>
-              <p style="color:#94a3b8; font-size:0.95rem;">Fetching data & generating PDF (${delaySeconds}s)...</p>
+              <p style="color:#94a3b8; font-size:0.95rem;">Fetching single-use ticket (${delaySeconds}s)...</p>
             </div>
           `;
         }
@@ -608,78 +458,16 @@ startxref
       }
 
       try {
-        // Step 2: Perform network API fetch to get binary PDF Blob
-        const pdfBlob = await fakeFetchPdf(delaySeconds * 1000);
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        log(`[Option A] PDF Blob created: ${blobUrl.substring(0, 30)}...`, 'info');
-        log(`[Option A] Attempting setting targetWindow.location.href = blobUrl...`, 'warn');
+        log(`[Option A] Requesting ticket from backend (${delaySeconds}s delay)...`, 'info');
+        await waitDelay(delaySeconds * 1000); // Respect range slider delay
+        const ticketUrl = DUMMY_PDF_URL;
 
-        // Step 3: Attempt setting location to blob URL after long async delay
-        targetWindow.location.href = blobUrl;
+        log(`[Option A] Ticket acquired. Setting targetWindow.location.href = server GET URL...`, 'success');
+        targetWindow.location.href = ticketUrl;
 
-        log(`[Option A] location.href updated. (Note: Safari & Mobile Safari block or fail cross-context blob URL redirects after async delay)`, 'warn');
+        log(`[Option A] ✅ location.href updated to server GET URL. Works on iOS, Android Chrome & Desktop!`, 'success');
       } catch (err) {
         log(`[Option A] ❌ Error during navigation: ${err.message}`, 'error');
-        if (targetWindow) targetWindow.close();
-      }
-    }
-
-    // ==========================================
-    // TEST OPTION B: Pre-open tab + iframe embedding blobUrl
-    // ==========================================
-    async function testOptionB() {
-      log(`[Option B] Click event registered. Opening window.open('about:blank')...`, 'info');
-
-      const targetWindow = window.open('about:blank', '_blank');
-      if (!targetWindow) {
-        log(`[Option B] ❌ window.open() was BLOCKED immediately by browser popup blocker!`, 'error');
-        alert('Popup blocked immediately!');
-        return;
-      }
-
-      try {
-        if (targetWindow.document) {
-          targetWindow.document.title = 'Preparing Boarding Pass...';
-          targetWindow.document.body.style.cssText = 'font-family:-apple-system,BlinkMacSystemFont,sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; background:#0f172a; color:#f8fafc;';
-          targetWindow.document.body.innerHTML = `
-            <div style="text-align:center; padding: 24px;">
-              <style>
-                @keyframes spin { to { transform: rotate(360deg); } }
-                .spinner {
-                  display: inline-block;
-                  width: 52px;
-                  height: 52px;
-                  border: 5px solid rgba(59, 130, 246, 0.2);
-                  border-top-color: #3b82f6;
-                  border-radius: 50%;
-                  animation: spin 1s linear infinite;
-                  margin-bottom: 20px;
-                }
-              </style>
-              <div class="spinner"></div>
-              <h2 style="font-size:1.4rem; font-weight:600; margin-bottom:8px; color:#f8fafc;">Preparing Boarding Pass PDF...</h2>
-              <p style="color:#94a3b8; font-size:0.95rem;">Fetching data & generating PDF (${delaySeconds}s)...</p>
-            </div>
-          `;
-        }
-      } catch (e) {
-        log(`[Option B] Warning writing initial loader: ${e.message}`, 'warn');
-      }
-
-      try {
-        // Step 2: Perform network API fetch to get binary PDF Blob
-        const pdfBlob = await fakeFetchPdf(delaySeconds * 1000);
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        log(`[Option B] PDF Blob created: ${blobUrl.substring(0, 30)}...`, 'info');
-        log(`[Option B] Embedding <iframe src="${blobUrl.substring(0, 30)}..."> inside tab DOM...`, 'info');
-
-        // Step 3: Inject iframe rendering the Blob URL inside the pre-opened tab
-        targetWindow.document.body.style.cssText = 'margin:0; padding:0; overflow:hidden; background:#1e293b;';
-        targetWindow.document.body.innerHTML = `<iframe src="${blobUrl}" style="width:100vw; height:100vh; border:none;"></iframe>`;
-
-        log(`[Option B] ✅ Embedded iframe created inside pre-opened tab. PDF renders directly in tab viewer!`, 'success');
-      } catch (err) {
-        log(`[Option B] ❌ Error: ${err.message}`, 'error');
         if (targetWindow) targetWindow.close();
       }
     }
