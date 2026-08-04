@@ -336,25 +336,25 @@
       <span class="delay-val" id="delayLabel">5 sec</span>
     </div>
     <div style="font-size: 0.85rem; color: var(--text-muted);">
-      💡 Note: Testing 2 Production-Grade Patterns for On-The-Fly PDF Generation.
+      💡 Tip: Set delay &gt; 3s to test browser popup blocker strictness after long asynchronous requests.
     </div>
   </div>
 
   <div class="grid">
-    <!-- Option A: Dynamic Ticket on Click -->
+    <!-- Option A -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title">Option A: Pre-Open Tab + Ticket Redirect</div>
-        <span class="badge badge-a">window.open + Ticket</span>
+        <div class="card-title">Option A: Pre-Open Tab</div>
+        <span class="badge badge-a">window.open + Blob</span>
       </div>
       <div class="card-body">
-        Pre-opens <code>about:blank</code> on click, fetches single-use ticket GUID via fast POST API (~20ms), and navigates tab to server <code>GET /PDFStream?ticket=GUID</code>.
+        Opens <code>about:blank</code> synchronously on click, fetches binary PDF Blob over network after delay, then sets <code>targetWindow.location.href = blobUrl</code>.
         <ul>
-          <li><strong>Ticket Creation:</strong> On demand (when clicked).</li>
-          <li><strong>Compatibility:</strong> 🟢 100% (iOS, Android Chrome, Desktop).</li>
+          <li><strong>Intent:</strong> Fetch PDF bytes via POST and view in new tab.</li>
+          <li><strong>Risk:</strong> Safari & Mobile Safari block/fail cross-context <code>blob:</code> location redirects after async delay.</li>
         </ul>
       </div>
-      <button class="btn" onclick="testOptionA()">Test Option A (Ticket on Click)</button>
+      <button class="btn" onclick="testOptionA()">Test Option A (Pre-Open Tab)</button>
     </div>
 
     <!-- Option B: Native <a target="_blank"> Link -->
@@ -364,10 +364,10 @@
         <span class="badge badge-b">target="_blank"</span>
       </div>
       <div class="card-body">
-        Native HTML <code>&lt;a href="/api/BoardingPass/PDFStream?ticket=GUID" target="_blank"&gt;</code> link pointing directly to server endpoint.
+        Native HTML <code>&lt;a href="PDF_URL" target="_blank"&gt;</code> link pointing directly to server endpoint streaming PDF inline.
         <ul>
-          <li><strong>Ticket Creation:</strong> Pre-attached on page load.</li>
-          <li><strong>Best UX:</strong> 🟢 0% popup blocker risk, 0 lines of JS required.</li>
+          <li><strong>Intent:</strong> Instant tab open with native browser PDF viewer.</li>
+          <li><strong>Best UX:</strong> 🟢 0% popup blocker risk across all platforms (iOS, Android, Desktop).</li>
         </ul>
       </div>
       <a class="btn btn-green" href="https://lorempdf.com/1000/1000/10" target="_blank">Test Option B (Native Link)</a>
@@ -420,14 +420,64 @@
       log('Console cleared.', 'info');
     }
 
+    // Helper: Generate a real client-side PDF Blob
+    function createDummyPdfBlob() {
+      const pdfRaw = `%PDF-1.4
+1 0 obj <</Type /Catalog /Pages 2 0 R>> endobj
+2 0 obj <</Type /Pages /Kids [3 0 R] /Count 1>> endobj
+3 0 obj <</Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R>> endobj
+4 0 obj <</Type /Font /Subtype /Type1 /BaseFont /Helvetica>> endobj
+5 0 obj <</Length 95>> stream
+BT
+/F1 24 Tf
+100 700 Td
+(Boarding Pass - Test PDF File) Tj
+/F1 14 Tf
+0 -40 Td
+(Generated successfully at ${new Date().toLocaleTimeString()}) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000010 00000 n 
+0000000060 00000 n 
+0000000117 00000 n 
+0000000256 00000 n 
+0000000325 00000 n 
+trailer <</Size 6 /Root 1 0 R>>
+startxref
+470
+%%EOF`;
+      return new Blob([pdfRaw], { type: 'application/pdf' });
+    }
+
     const DUMMY_PDF_URL = 'https://lorempdf.com/1000/1000/10';
 
     function waitDelay(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    // Simulated Long Network API Fetch (Returns a Blob object URL)
+    async function fakeFetchPdf(delayMs) {
+      log(`[API] Fetching binary PDF payload over network (${delaySeconds}s delay)...`, 'info');
+      await waitDelay(delayMs);
+      try {
+        const response = await fetch(DUMMY_PDF_URL, { mode: 'cors' });
+        if (response.ok) {
+          const blob = await response.blob();
+          log(`[API] Received PDF binary stream (${blob.size} bytes).`, 'success');
+          return blob;
+        }
+      } catch (err) {
+        log(`[API] Fetch notice: ${err.message}. Using fallback client PDF Blob...`, 'warn');
+      }
+      return createDummyPdfBlob();
+    }
+
     // ==========================================
-    // TEST OPTION A: Pre-open tab + Ticket Redirect
+    // TEST OPTION A: Pre-open tab + Delayed Blob Redirect
     // ==========================================
     async function testOptionA() {
       log(`[Option A] Click event registered. Opening window.open('about:blank')...`, 'info');
@@ -449,7 +499,7 @@
               <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
               <div style="display:inline-block; width:52px; height:52px; border:5px solid rgba(59,130,246,0.2); border-top-color:#3b82f6; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:20px;"></div>
               <h2 style="font-size:1.4rem; font-weight:600; margin-bottom:8px; color:#f8fafc;">Preparing Boarding Pass PDF...</h2>
-              <p style="color:#94a3b8; font-size:0.95rem;">Fetching single-use ticket (${delaySeconds}s)...</p>
+              <p style="color:#94a3b8; font-size:0.95rem;">Fetching data & generating PDF (${delaySeconds}s)...</p>
             </div>
           `;
         }
@@ -458,14 +508,16 @@
       }
 
       try {
-        log(`[Option A] Requesting ticket from backend (${delaySeconds}s delay)...`, 'info');
-        await waitDelay(delaySeconds * 1000); // Respect range slider delay
-        const ticketUrl = DUMMY_PDF_URL;
+        log(`[Option A] Fetching PDF Blob over network (${delaySeconds}s delay)...`, 'info');
+        const pdfBlob = await fakeFetchPdf(delaySeconds * 1000);
+        const blobUrl = URL.createObjectURL(pdfBlob);
 
-        log(`[Option A] Ticket acquired. Setting targetWindow.location.href = server GET URL...`, 'success');
-        targetWindow.location.href = ticketUrl;
+        log(`[Option A] PDF Blob created: ${blobUrl.substring(0, 30)}...`, 'info');
+        log(`[Option A] Setting targetWindow.location.href = blobUrl...`, 'warn');
 
-        log(`[Option A] ✅ location.href updated to server GET URL. Works on iOS, Android Chrome & Desktop!`, 'success');
+        targetWindow.location.href = blobUrl;
+
+        log(`[Option A] location.href updated. (Note: Safari & Mobile Safari block or fail cross-context blob URL redirects after async delay)`, 'warn');
       } catch (err) {
         log(`[Option A] ❌ Error during navigation: ${err.message}`, 'error');
         if (targetWindow) targetWindow.close();

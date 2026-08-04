@@ -15,24 +15,22 @@ Modern browsers enforce strict **User Activation / Transient User Gesture** poli
 
 ---
 
-## 2. Production Solutions & Comparison
+## 2. Summary of Options & Solutions
 
-To support on-the-fly PDF generation across all browsers (including iOS Safari & Android Chrome), use the **GET Ticket Endpoint Pattern** (`/api/BoardingPass/PDFStream?ticket=GUID`).
-
-| Option | Approach | Ticket Generation | Popup Blocker Risk | Compatibility | Recommended Scenario |
-| :--- | :--- | :--- | :---: | :---: | :--- |
-| **Option A** | Pre-open `about:blank` + Fast Ticket POST + GET Redirect | On Demand (when clicked) | 🟢 Low | 🟢 100% (iOS, Android, Desktop) | **Dynamic PDF generation on button click** |
-| **Option B** | Native `<a href="/PDFStream?ticket=GUID" target="_blank">` link | Pre-attached on page load | 🟢 0% Risk | 🟢 100% (iOS, Android, Desktop) | **Gold Standard (Zero Frontend JS)** |
+| Option | Approach | Popup Blocker Risk | Inline PDF Viewer? | Recommended Scenario |
+| :--- | :--- | :---: | :---: | :--- |
+| **Option A** | Pre-open `about:blank` + `location.href` redirect to `blob:` URL | ⚠️ High (Safari / iOS Safari) | Yes | **Negative Test Case** (Demonstrates Safari `blob:` redirect block) |
+| **Option B** | Native `<a href="PDF_URL" target="_blank">` link | 🟢 0% Risk | Yes | **Gold Standard (Direct GET URLs)** |
 
 ---
 
 ## 3. Implementation Details
 
-### Option A (Pre-Open Tab + Dynamic Ticket Fetch)
-Best pattern when tickets should only be created when a passenger clicks "View PDF":
+### Option A (Pre-Open Tab + Delayed Blob Redirect)
+Demonstrates what happens when fetching binary PDF bytes asynchronously and assigning `location.href = blobUrl`:
 
 ```javascript
-onViewPdfClick: async function(customerPayload) {
+onViewPdfClick: async function() {
   // 1. Synchronously open blank window inside click handler
   const pdfWindow = window.open('about:blank', '_blank');
   if (!pdfWindow) return alert('Popup blocked!');
@@ -46,19 +44,22 @@ onViewPdfClick: async function(customerPayload) {
     </div>
   `;
 
-  // 3. Fetch ticket GUID from backend (fast ~20ms POST call)
-  const res = await api.post('/api/BoardingPass/PDFTicket', customerPayload);
+  // 3. Perform long backend API call to fetch PDF Blob (3-5s)
+  const response = await fetch('/api/BoardingPass/PDFFile', { method: 'POST' });
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
 
-  // 4. Navigate window to real server GET URL
-  pdfWindow.location.href = `/api/BoardingPass/PDFStream?ticket=${res.ticket}`;
+  // 4. Attempt setting location.href to blobUrl
+  // NOTE: Safari and iOS Safari block or fail cross-context blob: location redirects after async delay!
+  pdfWindow.location.href = blobUrl;
 }
 ```
 
-### Option B (Native Link — Gold Standard)
-If ticket GUIDs are pre-attached during passenger list load:
+### Option B (Native GET Link — Gold Standard)
+If your API streams PDF directly via tokenized GET URLs:
 
 ```html
-<a href="/api/BoardingPass/PDFStream?ticket=550e8400-e29b-41d4-a716-446655440000" target="_blank" class="btn">
+<a href="/api/BoardingPass/PDFFile?ticket=XYZ" target="_blank" class="btn">
   View Boarding Pass PDF
 </a>
 ```
